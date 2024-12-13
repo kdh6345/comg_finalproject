@@ -13,6 +13,18 @@ private:
     glm::vec3 color;     // 캐릭터의 색상
     float rotationY;     // 캐릭터의 Y축 회전 각도
 
+    // 상대적 위치와 크기 (각 부위의 속성)
+    glm::vec3 bodyOffset; // 몸통 위
+    glm::vec3 bodySize;
+    glm::vec3 headOffset;
+    glm::vec3 headSize;
+    glm::vec3 armSize;
+    glm::vec3 leftArmOffset;
+    glm::vec3 rightArmOffset;
+    glm::vec3 legSize;
+    glm::vec3 leftLegOffset;
+    glm::vec3 rightLegOffset;
+
 public:
     // 생성자
     Character(glm::vec3 position, glm::vec3 size, glm::vec3 color);

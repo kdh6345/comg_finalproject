@@ -3,17 +3,20 @@
 #include "shaders.h"
 #include "draw_cube.h"
 #include "character.h"
+#include "background.h"
+#include "animation.h"
 
 Character* character;
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::vec3 lightPos = glm::vec3(10.0f, 10.0f, 10.0f);
-    glm::vec3 viewPos = glm::vec3(20.0f, 20.0f, 20.0f);
-
     // 캐릭터 렌더링
     character->render(lightPos, viewPos);
+  
+    drawSun(shaderProgram);
+
+    drawGround(shaderProgram);
 
     glutSwapBuffers();
 }
@@ -40,7 +43,9 @@ void init() {
     initCube();
 
     // 캐릭터 생성
-    character = new Character(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 2.0f, 1.0f), glm::vec3(0.5f, 0.8f, 0.2f));
+    character = new Character(glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 0.5f), glm::vec3(0.5f, 0.8f, 0.2f));
+
+
 
     // OpenGL 상태 설정
     glEnable(GL_DEPTH_TEST);

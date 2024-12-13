@@ -76,7 +76,7 @@ void drawCube(glm::vec3 position, glm::vec3 size, glm::vec3 color, glm::vec3 lig
     model = glm::translate(model, position);
     model = glm::scale(model, size);
 
-    glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, cameraUp);
+    glm::mat4 view = glm::lookAt(viewPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
