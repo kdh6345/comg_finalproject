@@ -12,6 +12,7 @@ private:
     glm::vec3 size;      // 캐릭터의 크기
     glm::vec3 color;     // 캐릭터의 색상
     float rotationY;     // 캐릭터의 Y축 회전 각도
+    float targetRotationY; // 목표 Y축 회전 각도
 
     // 상대적 위치와 크기 (각 부위의 속성)
     glm::vec3 bodyOffset; // 몸통 위
@@ -28,12 +29,19 @@ private:
 public:
     // 생성자
     Character(glm::vec3 position, glm::vec3 size, glm::vec3 color);
-
     // 캐릭터 이동
     void move(float dx, float dy, float dz);
 
-    // 캐릭터 회전
-    void rotate(float angle);
+    // 현재 Y축 회전 각도 반환
+    float getRotationY() const {
+        return rotationY;
+    }
+
+    // 목표 Y축 회전 각도 설정
+    void setTargetRotation(float angle);
+
+    // 회전 업데이트
+    void updateRotation();
 
     // 캐릭터 렌더링
     void render(glm::vec3 lightPos, glm::vec3 viewPos);
