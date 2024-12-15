@@ -1,10 +1,10 @@
 #pragma once
 #ifndef CHARACTER_H
 #define CHARACTER_H
-
 #include "common.h"
 #include "globals.h"
 #include "draw_cube.h"
+#include "collision_object.h"
 
 class Character {
 private:
@@ -30,7 +30,7 @@ public:
     // 생성자
     Character(glm::vec3 position, glm::vec3 size, glm::vec3 color);
     // 캐릭터 이동
-    void move(float dx, float dy, float dz);
+    void move(float dx, float dy, float dz, const CollisionManager& collisionManager);
 
     // 현재 Y축 회전 각도 반환
     float getRotationY() const {
@@ -40,12 +40,17 @@ public:
     // 목표 Y축 회전 각도 설정
     void setTargetRotation(float angle);
 
+    glm::vec3 getPosition()const;
+    glm::vec3 getSize() const;
+
     // 회전 업데이트
     void updateRotation();
 
     // 캐릭터 렌더링
     void render(glm::vec3 lightPos, glm::vec3 viewPos);
 };
+
+
 
 #endif // CHARACTER_H
 

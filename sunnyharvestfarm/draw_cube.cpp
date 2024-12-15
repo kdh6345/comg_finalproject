@@ -90,3 +90,34 @@ void drawCube(glm::vec3 position, glm::vec3 size, glm::vec3 color, glm::vec3 lig
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 }
+void drawCylinder(float baseRadius, float topRadius, float height, int slices, int stacks) {
+    // GLUquadric °´Ã¼ »ý¼º
+    GLUquadric* quad = gluNewQuadric();
+
+    // ¿ø±âµÕ »ý¼º
+    gluCylinder(quad, baseRadius, topRadius, height, slices, stacks);
+
+    // GLUquadric °´Ã¼ »èÁ¦
+    gluDeleteQuadric(quad);
+}
+// ¿ø±âµÕ ·»´õ¸µ ÇÔ¼ö
+void drawCylinderWithCaps(float baseRadius, float topRadius, float height, int slices, int stacks) {
+    GLUquadric* quad = gluNewQuadric();
+
+    // ¹Ø¸é
+    glPushMatrix();
+    glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+    gluDisk(quad, 0.0f, baseRadius, slices, stacks);
+    glPopMatrix();
+
+    // Ãø¸é
+    gluCylinder(quad, baseRadius, topRadius, height, slices, stacks);
+
+    // À­¸é
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, height);
+    gluDisk(quad, 0.0f, topRadius, slices, stacks);
+    glPopMatrix();
+
+    gluDeleteQuadric(quad);
+}

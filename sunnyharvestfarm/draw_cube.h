@@ -14,6 +14,7 @@ void initCube();
 
 // 큐브 그리기 함수
 void drawCube(glm::vec3 position, glm::vec3 size, glm::vec3 color, glm::vec3 lightPos, glm::vec3 viewPos, glm::mat4 model);
-
+void drawCylinder(float baseRadius, float topRadius, float height, int slices, int stacks);
+void drawCylinderWithCaps(float baseRadius, float topRadius, float height, int slices, int stacks);
 #endif // DRAW_CUBE_H
 

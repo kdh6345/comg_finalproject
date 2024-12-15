@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-
+#include <algorithm>
 // OpenGL and GLM Libraries
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -20,5 +20,6 @@
 
 // Project-Specific Headers
 #include "globals.h"
+
 
 #endif // COMMON_H

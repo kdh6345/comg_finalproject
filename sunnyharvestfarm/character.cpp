@@ -1,10 +1,10 @@
 #include "character.h"
-
+#include "collision_object.h"
 // 생성자: 몸통과 각 부위의 상대적 위치 및 크기 초기화
 Character::Character(glm::vec3 position, glm::vec3 size, glm::vec3 color)
     : position(position), size(size), color(color), rotationY(0.0f), targetRotationY(0.0f) {
 
-    bodyOffset = glm::vec3(position.x, position.y , position.z); // 몸통 위
+    bodyOffset = glm::vec3(position.x, position.y , 0.0f); // 몸통 위
     bodySize = glm::vec3(1.0f, 1.0f, 0.5f);
     // 머리
     headOffset = glm::vec3(0.0f, position.y + 1.25f, 0.0f); // 몸통 위
@@ -21,16 +21,28 @@ Character::Character(glm::vec3 position, glm::vec3 size, glm::vec3 color)
     rightLegOffset = glm::vec3(position.x +0.35f, position.y-0.75, 0.0f); // 몸통 오른쪽 아래
 }
 
-// 이동 함수: 위치를 변경
-void Character::move(float dx, float dy, float dz) {
-    // 현재 회전 각도를 라디안으로 변환
-    float radians = glm::radians(rotationY);
-
-    // 이동 방향 계산 (회전 각도에 따라 x, z 축 이동)
-    position.x += dx * cos(radians) - dz * sin(radians);
-    position.z += dx * sin(radians) + dz * cos(radians);
-    position.y += dy; // y축 이동은 그대로
+glm::vec3 Character::getPosition() const {
+    return position; // position 멤버 변수 반환
 }
+// 크기 반환
+glm::vec3 Character::getSize() const {
+    return size;
+}
+void Character::move(float dx, float dy, float dz, const CollisionManager& collisionManager) {
+    glm::vec3 newPosition = position;
+
+    // 이동 계산
+    float radians = glm::radians(rotationY);
+    newPosition.x += dx * cos(radians) - dz * sin(radians);
+    newPosition.z += dx * sin(radians) + dz * cos(radians);
+    newPosition.y += dy;
+
+    // 충돌 감지
+    if (!collisionManager.checkCollision(newPosition, size)) {
+        position = newPosition; // 충돌이 없으면 이동
+    }
+}
+
 
 
 void Character::setTargetRotation(float angle) {
@@ -97,4 +109,4 @@ void Character::render(glm::vec3 lightPos, glm::vec3 viewPos) {
     drawCube(position + rightLegOffset, legSize, glm::vec3(0.4f, 0.4f, 0.6f), lightPos, viewPos, rightLegModel);
 }
 
-
+ 
