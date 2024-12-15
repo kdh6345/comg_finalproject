@@ -38,6 +38,7 @@ void Customer::updatePosition(float deltaTime) {
         rotationY += rotationSpeed;
 
         if (rotationStage == 1 && rotationY >= 180.0f) {
+            std::cout << "[DEBUG] 180-degree rotation complete." << std::endl;
             //std::cout << "[DEBUG] 180-degree rotation complete." << std::endl;
             rotationY = 180.0f;
             isRotating = false; // 회전 종료
@@ -58,7 +59,8 @@ void Customer::updatePosition(float deltaTime) {
             isMoving = false;
 
             if (targetPosition == spawnPosition) {
-               // std::cout << "[DEBUG] Returned to spawn position." << std::endl;
+                std::cout << "[DEBUG] Returned to spawn position." << std::endl;
+                // std::cout << "[DEBUG] Returned to spawn position." << std::endl;
                 isCarryingEggs = false; // 달걀 전달 완료
                 rotationY = 0.0f; // 원래 방향으로 초기화
             }
@@ -66,6 +68,7 @@ void Customer::updatePosition(float deltaTime) {
     }
 
     if (isCarryingEggs && !isRotating && !isMoving) {
+        std::cout << "[DEBUG] Starting 180-degree rotation." << std::endl;
         //std::cout << "[DEBUG] Starting 180-degree rotation." << std::endl;
         isRotating = true;
         rotationStage = 1;
@@ -73,7 +76,11 @@ void Customer::updatePosition(float deltaTime) {
 }
 
 
+
+
+
 void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
+    if (dropEggs.empty() || isCarryingEggs) return; // 이미 달걀을 들고 있으면 중단
     if (isCarryingEggs) {
         std::cout << "[DEBUG] Already carrying eggs, cannot take more." << std::endl;
         return; // 이미 달걀을 들고 있는 상태라면 중단
@@ -84,13 +91,15 @@ void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
         isCarryingEggs = false; // 가져갈 달걀이 없으면 상태 갱신
         return; // 달걀이 없으면 동작 중단
     }
-    
 
-    int takeCount = std::min(rand() % 8 + 3, static_cast<int>(dropEggs.size())); // 3~10개의 랜덤 개수
+
+    int takeCount = std::min(rand() % 8 + 3, (int)dropEggs.size()); // 3~10개의 랜덤 개수
+  
     for (int i = 0; i < takeCount; ++i) {
         heldEggs.push_back(dropEggs.back()); // 맨 위 달걀 추가
         dropEggs.pop_back();                // 가져간 달걀 제거
     }
+
     isCarryingEggs = true; // 달걀 들기 상태 활성화
     isMoving = true;       // 스폰 위치로 이동 시작
     targetPosition = spawnPosition; // 목표를 스폰 위치로 변경
@@ -226,4 +235,3 @@ void Customer::render(glm::vec3 lightPos, glm::vec3 viewPos) const {
 glm::vec3 Customer::getPosition() const {
     return position; // 손님의 현재 위치를 반환
 }
-

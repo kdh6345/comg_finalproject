@@ -28,7 +28,7 @@ private:
     bool isMoving;         // 이동 중인지 여부 (애니메이션 제어)
     bool isResetting;      // 팔다리 각도를 초기화 중인지 여부
 
-   
+
 
     // 추가 상태
     bool isRotating;        // 회전 중인지 여부
