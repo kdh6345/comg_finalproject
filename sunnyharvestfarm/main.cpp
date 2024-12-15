@@ -62,19 +62,6 @@ void stackEggOnCounter() {
     }
 }
 
-void spawnCustomers() {
-    int numCustomers = rand() % 5 + 1; // 1 ~ 5명 사이 랜덤 손님 생성
-    float spacing = 1.5f;             // 줄 간격
-
-    glm::vec3 basePosition(0.0f, 0.5f, 18.0f); // 줄 맨 앞의 기준 위치
-
-    for (int i = 0; i < numCustomers; ++i) {
-        glm::vec3 customerPosition = basePosition + glm::vec3(0.0f, 0.0f, i * spacing);
-        glm::vec3 customerSize = glm::vec3(1.0f, 1.0f, 1.0f);
-        glm::vec3 customerColor = glm::vec3(0.9f, 0.5f, 0.2f); // 주황색
-        customers.emplace_back(customerPosition, customerSize, customerColor);
-    }
-}
 
 
 void renderCustomers(glm::vec3 lightPos, glm::vec3 viewPos) {
@@ -95,6 +82,7 @@ void updateCustomers(float deltaTime) {
         }
     }
 }
+
 
 void checkCollision() {
     glm::vec3 charPos = character->getPosition();
@@ -140,7 +128,7 @@ void display() {
     drawGround(shaderProgram);
     // ChickenPlace 렌더링
     chickenPlace->render(shaderProgram);
-   
+
     // 충돌 감지
     checkCollision();
 
@@ -198,10 +186,9 @@ void keyboard(unsigned char key, int x, int y) {
 void updateAnimation(int value) {
     float deltaTime = 0.016f; // 60 FPS 기준
 
-    
     updateCustomers(deltaTime);
 
-
+    
     if (walking) {
         character->updateRotation(); // 캐릭터의 회전 업데이트
         updateDropEggs(deltaTime); // DropEgg 부드럽게 이동
@@ -249,7 +236,7 @@ void updateAnimation(int value) {
         timeSinceLastEgg = 0.0f;
         addEggInChickenPlace();
     }
-   
+
 
     glutTimerFunc(16, updateAnimation, 0); // 60 FPS
     glutPostRedisplay();
@@ -287,8 +274,8 @@ void init() {
     // ChickenPlace 초기화
     chickenPlace = new ChickenPlace(glm::vec3(-5.0f, 0.0f, -20.0f), glm::vec3(5.0f, 0.0f, -10.0f));
     addPlatform(glm::vec3(1.5f, 0.01f, -1.7f)); // 발판 추가
-    
-   
+
+
 
     // OpenGL 상태 설정
     glEnable(GL_DEPTH_TEST);
@@ -302,7 +289,7 @@ int main(int argc, char** argv) {
 
     glewInit();
     init();
-    
+
 
     glutTimerFunc(16, updateAnimation, 0);
     glutDisplayFunc(display);
