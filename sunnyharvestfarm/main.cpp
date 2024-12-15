@@ -62,6 +62,19 @@ void stackEggOnCounter() {
     }
 }
 
+void spawnCustomers() {
+    int numCustomers = rand() % 5 + 1; // 1 ~ 5명 사이 랜덤 손님 생성
+    float spacing = 1.5f;             // 줄 간격
+
+    glm::vec3 basePosition(0.0f, 0.5f, 18.0f); // 줄 맨 앞의 기준 위치
+
+    for (int i = 0; i < numCustomers; ++i) {
+        glm::vec3 customerPosition = basePosition + glm::vec3(0.0f, 0.0f, i * spacing);
+        glm::vec3 customerSize = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec3 customerColor = glm::vec3(0.9f, 0.5f, 0.2f); // 주황색
+        customers.emplace_back(customerPosition, customerSize, customerColor);
+    }
+}
 
 
 void renderCustomers(glm::vec3 lightPos, glm::vec3 viewPos) {
@@ -73,6 +86,9 @@ void updateCustomers(float deltaTime) {
     for (auto& customer : customers) {
         customer.updatePosition(deltaTime); // 손님 이동 업데이트
         customer.updateAnimation(deltaTime); // 손님 애니메이션 업데이트
+
+        // 상태 출력 (디버깅용)
+        //customer.printState();
 
         if (customer.isAtTarget() && !customer.isCarryingEggs) {
             customer.takeEggs(dropEggs); // 카운터에 도달하면 달걀 가져가기
@@ -266,7 +282,7 @@ void init() {
 
 
     // 캐릭터 생성
-    collisionManager.addCollisionObject(CollisionObject(glm::vec3(0.0f, 0.5f, 1.5f), glm::vec3(5.0f, 1.0f, 2.0f))); // Counter
+    //collisionManager.addCollisionObject(CollisionObject(glm::vec3(0.0f, 0.5f, 1.5f), glm::vec3(5.0f, 1.0f, 2.0f))); // Counter
     character = new Character(glm::vec3(0.0f, 0.5f, -2.0f), glm::vec3(1.0f, 1.0f, 0.5f), glm::vec3(0.5f, 0.8f, 0.2f));
     // ChickenPlace 초기화
     chickenPlace = new ChickenPlace(glm::vec3(-5.0f, 0.0f, -20.0f), glm::vec3(5.0f, 0.0f, -10.0f));

@@ -30,9 +30,15 @@ private:
 
    
 
+    // 추가 상태
+    bool isRotating;        // 회전 중인지 여부
+    int rotationStage;      // 현재 회전 단계 (0: 없음, 1: 첫 회전, 2: 두 번째 회전)
+    glm::vec3 intermediateTarget; // 회전 후 이동할 중간 목표 위치
+
     std::vector<DropEgg> heldEggs; // 손님이 들고 있는 달걀
 
 public:
+    void printState() const;
     Customer(glm::vec3 position, glm::vec3 size, glm::vec3 color);
     bool isCarryingEggs;   // 달걀을 들고 있는 상태
     void updatePosition(float deltaTime);  // 위치 업데이트
@@ -41,6 +47,7 @@ public:
     bool isAtTarget() const;  // 목표 지점에 도달했는지 확인
     void takeEggs(std::vector<DropEgg>& dropEggs); // 달걀 가져가기
     bool isAtSpawnPosition() const; // 스폰 위치로 돌아왔는지 확인
+
     // 추가: isCarryingEggs 상태 반환
     bool isCarryingEggsStatus() const {
         return isCarryingEggs;

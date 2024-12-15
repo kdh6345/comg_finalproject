@@ -6,7 +6,8 @@
 Customer::Customer(glm::vec3 position, glm::vec3 size, glm::vec3 color)
     : position(position), size(size), color(color), rotationY(0.0f), speed(1.0f),
     leftArmSwing(0.0f), rightArmSwing(0.0f), leftLegSwing(0.0f), rightLegSwing(0.0f),
-    swingDirection(true), isMoving(true), isResetting(false), isCarryingEggs(false) {
+    swingDirection(true), isMoving(true), isResetting(false), isCarryingEggs(false),
+    isRotating(false), rotationStage(0), intermediateTarget(glm::vec3(0.0f)) { // 초기화 추가
 
     targetPosition = glm::vec3(0.0f, 0.5f, 5.0f);
     spawnPosition = position; // 스폰 위치 저장
@@ -27,28 +28,53 @@ Customer::Customer(glm::vec3 position, glm::vec3 size, glm::vec3 color)
     rightLegOffset = glm::vec3(position.x + 0.35f, position.y - 0.75f, 0.0f);
 }
 
+
 void Customer::updatePosition(float deltaTime) {
-    if (!isMoving && !isResetting) return; // 이동 중이 아니면 위치 업데이트 중단
+    if (!isMoving && !isRotating) return;
 
-    glm::vec3 direction = targetPosition - position;
-    float distance = glm::length(direction);
+    if (isRotating) {
+        // 회전 애니메이션
+        float rotationSpeed = 180.0f * deltaTime; // 180도 회전
+        rotationY += rotationSpeed;
 
-    if (distance > 0.01f) { // 목표 지점에 도달하지 않았다면
-        glm::vec3 moveDirection = glm::normalize(direction);
-        position += moveDirection * speed * deltaTime;
+        if (rotationStage == 1 && rotationY >= 180.0f) {
+            std::cout << "[DEBUG] 180-degree rotation complete." << std::endl;
+            rotationY = 180.0f;
+            isRotating = false; // 회전 종료
+            isMoving = true;    // 이동 시작
+            targetPosition = spawnPosition; // 원래 스폰 위치로 이동
+        }
     }
-    else {
-        if (targetPosition == glm::vec3(0.0f, 0.5f, 5.0f)) {
-            isMoving = false;   // 이동 중지
-            isResetting = true; // 초기화 시작
-            isCarryingEggs = true; // 달걀 들기
+    else if (isMoving) {
+        glm::vec3 direction = targetPosition - position;
+        float distance = glm::length(direction);
+
+        if (distance > 0.01f) { // 목표 지점에 도달하지 않았다면
+            glm::vec3 moveDirection = glm::normalize(direction);
+            position += moveDirection * speed * deltaTime;
         }
-        else if (targetPosition == spawnPosition && isCarryingEggs) {
-            isCarryingEggs = false; // 달걀을 들고 있던 상태 해제
-            // 새로운 손님 생성은 외부에서 관리
+        else {
+            position = targetPosition; // 목표 위치에 정확히 도달
+            isMoving = false;
+
+            if (targetPosition == spawnPosition) {
+                std::cout << "[DEBUG] Returned to spawn position." << std::endl;
+                isCarryingEggs = false; // 달걀 전달 완료
+                rotationY = 0.0f; // 원래 방향으로 초기화
+            }
         }
+    }
+
+    if (isCarryingEggs && !isRotating && !isMoving) {
+        std::cout << "[DEBUG] Starting 180-degree rotation." << std::endl;
+        isRotating = true;
+        rotationStage = 1;
     }
 }
+
+
+
+
 
 void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
     if (dropEggs.empty() || isCarryingEggs) return; // 이미 달걀을 들고 있으면 중단
@@ -62,32 +88,43 @@ void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
     isCarryingEggs = true; // 달걀 들기 상태 활성화
 }
 
+void Customer::printState() const {
+    std::cout << "Customer State:" << std::endl;
+    std::cout << "  Position: (" << position.x << ", " << position.y << ", " << position.z << ")" << std::endl;
+    std::cout << "  Target Position: (" << targetPosition.x << ", " << targetPosition.y << ", " << targetPosition.z << ")" << std::endl;
+    std::cout << "  Spawn Position: (" << spawnPosition.x << ", " << spawnPosition.y << ", " << spawnPosition.z << ")" << std::endl;
+    std::cout << "  Rotation Y: " << rotationY << " degrees" << std::endl;
+    std::cout << "  Is Moving: " << (isMoving ? "true" : "false") << std::endl;
+    std::cout << "  Is Rotating: " << (isRotating ? "true" : "false") << std::endl;
+    std::cout << "  Is Resetting: " << (isResetting ? "true" : "false") << std::endl;
+    std::cout << "  Is Carrying Eggs: " << (isCarryingEggs ? "true" : "false") << std::endl;
+    std::cout << "  Rotation Stage: " << rotationStage << std::endl;
+    std::cout << "  Held Eggs: " << heldEggs.size() << std::endl;
+    std::cout << "-----------------------------------------" << std::endl;
+}
 
 // 손님이 스폰 위치로 돌아왔는지 확인
 bool Customer::isAtSpawnPosition() const {
     return glm::length(position - spawnPosition) < 0.1f;
 }
-// 팔다리 애니메이션 업데이트
 void Customer::updateAnimation(float deltaTime) {
     float swingSpeed = 50.0f * deltaTime;
 
     if (isResetting) {
-        // 초기화 애니메이션
+        // 팔다리 초기화 애니메이션
         leftArmSwing = glm::mix(leftArmSwing, 0.0f, 0.2f);
         rightArmSwing = glm::mix(rightArmSwing, 0.0f, 0.2f);
         leftLegSwing = glm::mix(leftLegSwing, 0.0f, 0.2f);
         rightLegSwing = glm::mix(rightLegSwing, 0.0f, 0.2f);
 
-        // 초기화 완료 여부 확인
         if (std::abs(leftArmSwing) < 1.0f && std::abs(rightArmSwing) < 1.0f &&
             std::abs(leftLegSwing) < 1.0f && std::abs(rightLegSwing) < 1.0f) {
-            // 초기화 완료
             leftArmSwing = rightArmSwing = 0.0f;
             leftLegSwing = rightLegSwing = 0.0f;
-            isResetting = false; // 초기화 상태 종료
+            isResetting = false; // 초기화 종료
         }
     }
-    else if (isMoving) {
+    else if (isMoving || isCarryingEggs) {
         // 걷기 애니메이션
         if (swingDirection) {
             leftArmSwing += swingSpeed;
@@ -102,12 +139,14 @@ void Customer::updateAnimation(float deltaTime) {
             rightLegSwing -= swingSpeed;
         }
 
-        // 방향 전환
         if (leftArmSwing >= 50.0f || leftArmSwing <= -50.0f) {
             swingDirection = !swingDirection;
         }
     }
 }
+
+
+
 
 bool Customer::isAtTarget() const {
     return glm::length(position - targetPosition) < 0.1f;
