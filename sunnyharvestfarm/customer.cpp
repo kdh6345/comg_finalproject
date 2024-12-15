@@ -98,7 +98,7 @@ void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
         heldEggs.push_back(dropEggs.back()); // 맨 위 달걀 추가
         dropEggs.pop_back();                // 가져간 달걀 제거
     }
-    coins += takeCount * 3; // 가져간 달걀 개수 * 3
+    coins += takeCount * price; // 가져간 달걀 개수 * 3
     printf("%d", coins);
     isCarryingEggs = true; // 달걀 들기 상태 활성화
     isMoving = true;       // 스폰 위치로 이동 시작

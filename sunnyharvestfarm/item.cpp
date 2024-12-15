@@ -29,10 +29,6 @@ glm::vec3 Egg::getColor() const {
 }
 
 
-
-
-
-
 // HoldingEgg Å¬·¡½º
 HoldingEgg::HoldingEgg(glm::vec3 startPosition, glm::vec3 targetOffset, glm::vec3 size, glm::vec3 color)
     : currentPosition(startPosition), targetOffset(targetOffset), size(size), color(color) {}

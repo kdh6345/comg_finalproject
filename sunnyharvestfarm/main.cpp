@@ -6,13 +6,18 @@
 #include "background.h"
 #include "animation.h"
 #include "item.h"
-#include "customer.h"
+
 
 CollisionManager collisionManager;
 Character* character;
 HoldingEgg* holdingEgg = nullptr; // 캐릭터가 들고 있는 달걀
 std::vector<HoldingEgg> holdingEggs; // 캐릭터가 들고 있는 달걀 스택
+
 std::vector<Egg> chickenPlaceEggs; // ChickenPlace 내부의 달걀들
+std::vector<Egg> thirdPlaceEggs; // thirdPlace 내부의 달걀들
+// 사운드 재생 함수
+
+
 std::vector<DropEgg> dropEggs; // 카운터 위에 있는 DropEgg 리스트
 std::vector<Customer> customers;   // 손님 리스트
 float customerSpawnInterval = 10.0f; // 손님 생성 간격 (초)
@@ -20,13 +25,14 @@ float timeSinceLastCustomer = 0.0f; // 마지막 손님 생성 후 경과 시간
 
 ChickenPlace* chickenPlace;       // ChickenPlace 객체
 secondPlace* secondPlaceArea;
+thirdPlace* thirdPlaceArea;
 float eggGenerationInterval = 1.0f; // 달걀 생성 간격 (초)
 float timeSinceLastEgg = 0.0f;
 
 // 추가: 생성해야 할 남은 손님 수
 int remainingCustomersToSpawn = 0;
 
-void renderText(float x, float y, const std::string& text) {
+void renderText(float x, float y, const std::string& text, void* font = GLUT_BITMAP_HELVETICA_18) {
     // OpenGL 상태 저장
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_LIGHTING);       // 조명 비활성화
@@ -44,13 +50,15 @@ void renderText(float x, float y, const std::string& text) {
     glPushMatrix();
     glLoadIdentity();
 
+    // 검은색 텍스트 색상
+    glColor3f(0.0f, 0.0f, 0.0f);
+
     // 텍스트 위치 설정
-    glColor3f(1.0f, 1.0f, 1.0f); // 텍스트 색상 (흰색)
     glRasterPos2f(x, y);
 
     // 텍스트 출력
     for (char c : text) {
-        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+        glutBitmapCharacter(font, c);
     }
 
     // 상태 복구
@@ -62,23 +70,71 @@ void renderText(float x, float y, const std::string& text) {
 }
 
 
+
 glm::vec3 generateRandomEggPosition(const glm::vec3& minPoint, const glm::vec3& maxPoint) {
 float randomX = minPoint.x + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxPoint.x - minPoint.x)));
 float randomZ = minPoint.z + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxPoint.z - minPoint.z)));
 return glm::vec3(randomX, minPoint.y, randomZ); // Y는 고정
 }
 
-// 영역 내 달걀 생성
 void addEggInChickenPlace() {
-    if (chickenPlaceEggs.size() < 50) 
+    if (chickenPlaceEggs.size() < 50)
     {
+        // ChickenPlace 영역의 최소 및 최대 좌표
         glm::vec3 minPoint = glm::vec3(-5.0f, 0.5f, -20.0f);
         glm::vec3 maxPoint = glm::vec3(5.0f, 0.5f, -10.0f);
 
+        // 랜덤 위치 생성
         glm::vec3 eggPosition = generateRandomEggPosition(minPoint, maxPoint);
-        chickenPlaceEggs.emplace_back(eggPosition, glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f)); // 노란색 달걀
+
+        // 달걀 크기 및 색상 (회색)
+        glm::vec3 eggSize(0.3f, 0.4f, 0.3f);
+        glm::vec3 eggColor(0.5f, 0.5f, 0.5f); // 회색
+
+        // ChickenPlace에 달걀 추가
+        chickenPlaceEggs.emplace_back(eggPosition, eggSize, eggColor);
     }
 }
+
+
+std::vector<Egg> secondPlaceEggs; // secondPlace 내부의 달걀들
+
+void addEggInSecondPlace() {
+    if (currentLevel >= 2 && secondPlaceEggs.size() < 50) { // 레벨 2일 때만 달걀 생성
+        // secondPlace 영역의 최소 및 최대 좌표
+        glm::vec3 minPoint = glm::vec3(8.0f, 0.5f, -20.0f);
+        glm::vec3 maxPoint = glm::vec3(18.0f, 0.5f, -10.0f);
+
+        // 랜덤 위치 생성
+        glm::vec3 eggPosition = generateRandomEggPosition(minPoint, maxPoint);
+
+        // 알 크기와 색상
+        glm::vec3 eggSize(0.4f, 0.5f, 0.4f);
+        glm::vec3 eggColor(1.0f, 1.0f, 0.88f); // 연노란색
+
+        // secondPlace에 달걀 추가
+        secondPlaceEggs.emplace_back(eggPosition, eggSize, eggColor);
+    }
+}
+
+void addEggInThirdPlace() {
+    if (currentLevel >= 3 && thirdPlaceEggs.size() < 50) { // 레벨 3일 때만 달걀 생성
+        // thirdPlace 영역의 최소 및 최대 좌표
+        glm::vec3 minPoint = glm::vec3(-18.0f, 0.5f, -20.0f);
+        glm::vec3 maxPoint = glm::vec3(-8.0f, 0.5f, -10.0f);
+
+        // 랜덤 위치 생성
+        glm::vec3 eggPosition = generateRandomEggPosition(minPoint, maxPoint);
+
+        // 알 크기와 색상
+        glm::vec3 eggSize(0.5f, 0.6f, 0.5f);
+        glm::vec3 eggColor(1.0f, 1.0f, 0.0f); // 노란색
+
+        // thirdPlace에 달걀 추가
+        thirdPlaceEggs.emplace_back(eggPosition, eggSize, eggColor);
+    }
+}
+
 void spawnRandomCustomers(int value) {
     if (remainingCustomersToSpawn > 0) {
         // 손님 생성
@@ -120,7 +176,7 @@ void stackEggOnCounter()
 
 // 카운터 위치와 쌓는 간격 설정
     glm::vec3 counterBasePosition = glm::vec3(0.0f, 1.0f, 1.5f); // 카운터 위치
-    float eggStackOffset = 0.6f; // 각 달걀 간의 Y축 간격
+    float eggStackOffset = 0.8f; // 각 달걀 간의 Y축 간격
 
 // 카운터 위에 이미 쌓인 달걀의 개수를 확인
     int currentStackCount = dropEggs.size();
@@ -231,37 +287,90 @@ void updateCustomers(float deltaTime) {
 
 
 void checkCollision() {
-glm::vec3 charPos = character->getPosition();
-glm::vec3 charSize = character->getSize();
+    glm::vec3 charPos = character->getPosition();
+    glm::vec3 charSize = character->getSize();
 
-std::vector<Egg> remainingEggs;
+    std::vector<Egg> remainingChickenEggs;
+    std::vector<Egg> remainingSecondPlaceEggs;
 
-for (const auto& egg : chickenPlaceEggs) {
-glm::vec3 eggPos = egg.getPosition();
-glm::vec3 eggSize = egg.getSize();
+    // ChickenPlace 내부 달걀과의 충돌
+    for (const auto& egg : chickenPlaceEggs) {
+        glm::vec3 eggPos = egg.getPosition();
+        glm::vec3 eggSize = egg.getSize();
 
-// AABB 충돌 감지
-bool collisionX = charPos.x + charSize.x >= eggPos.x - eggSize.x &&
-charPos.x - charSize.x <= eggPos.x + eggSize.x;
-bool collisionY = charPos.y + charSize.y >= eggPos.y - eggSize.y &&
-charPos.y - charSize.y <= eggPos.y + eggSize.y;
-bool collisionZ = charPos.z + charSize.z >= eggPos.z - eggSize.z &&
-charPos.z - charSize.z <= eggPos.z + eggSize.z;
+        // AABB 충돌 감지
+        bool collisionX = charPos.x + charSize.x >= eggPos.x - eggSize.x &&
+            charPos.x - charSize.x <= eggPos.x + eggSize.x;
+        bool collisionY = charPos.y + charSize.y >= eggPos.y - eggSize.y &&
+            charPos.y - charSize.y <= eggPos.y + eggSize.y;
+        bool collisionZ = charPos.z + charSize.z >= eggPos.z - eggSize.z &&
+            charPos.z - charSize.z <= eggPos.z + eggSize.z;
 
-if (collisionX && collisionY && collisionZ) {
-// 목표 위치는 머리 위 + 스택 높이
-glm::vec3 newEggOffset(0.0f, 1.25f + holdingEggs.size() * 0.6f, 0.0f);
+        if (collisionX && collisionY && collisionZ) {
+            // 충돌 시 달걀을 캐릭터가 들도록 추가
+            glm::vec3 newEggOffset(0.0f, 1.25f + holdingEggs.size() * 0.6f, 0.0f);
+            holdingEggs.emplace_back(eggPos, newEggOffset, eggSize, egg.getColor());
+            continue; // 충돌한 달걀은 삭제
+        }
 
-// HoldingEgg 생성 (시작 위치는 충돌한 달걀의 위치)
-holdingEggs.emplace_back(eggPos, newEggOffset, eggSize, glm::vec3(1.0f, 1.0f, 0.0f));
-continue; // 충돌한 달걀은 삭제
+        remainingChickenEggs.push_back(egg);
+    }
+
+    chickenPlaceEggs = remainingChickenEggs;
+
+    // SecondPlace 내부 달걀과의 충돌
+    for (const auto& egg : secondPlaceEggs) {
+        glm::vec3 eggPos = egg.getPosition();
+        glm::vec3 eggSize = egg.getSize();
+
+        // AABB 충돌 감지
+        bool collisionX = charPos.x + charSize.x >= eggPos.x - eggSize.x &&
+            charPos.x - charSize.x <= eggPos.x + eggSize.x;
+        bool collisionY = charPos.y + charSize.y >= eggPos.y - eggSize.y &&
+            charPos.y - charSize.y <= eggPos.y + eggSize.y;
+        bool collisionZ = charPos.z + charSize.z >= eggPos.z - eggSize.z &&
+            charPos.z - charSize.z <= eggPos.z + eggSize.z;
+
+        if (collisionX && collisionY && collisionZ) {
+            // 충돌 시 달걀을 캐릭터가 들도록 추가
+            glm::vec3 newEggOffset(0.0f, 1.25f + holdingEggs.size() * 0.6f, 0.0f);
+            holdingEggs.emplace_back(eggPos, newEggOffset, eggSize, egg.getColor());
+            continue; // 충돌한 달걀은 삭제
+        }
+
+        remainingSecondPlaceEggs.push_back(egg);
+    }
+
+    secondPlaceEggs = remainingSecondPlaceEggs;
+
+    // ThirdPlace 내부 달걀과의 충돌
+    std::vector<Egg> remainingThirdPlaceEggs;
+    for (const auto& egg : thirdPlaceEggs) {
+        glm::vec3 eggPos = egg.getPosition();
+        glm::vec3 eggSize = egg.getSize();
+
+        // AABB 충돌 감지
+        bool collisionX = charPos.x + charSize.x >= eggPos.x - eggSize.x &&
+            charPos.x - charSize.x <= eggPos.x + eggSize.x;
+        bool collisionY = charPos.y + charSize.y >= eggPos.y - eggSize.y &&
+            charPos.y - charSize.y <= eggPos.y + eggSize.y;
+        bool collisionZ = charPos.z + charSize.z >= eggPos.z - eggSize.z &&
+            charPos.z - charSize.z <= eggPos.z + eggSize.z;
+
+        if (collisionX && collisionY && collisionZ) {
+            // 충돌 시 달걀을 캐릭터가 들도록 추가
+            glm::vec3 newEggOffset(0.0f, 1.25f + holdingEggs.size() * 0.6f, 0.0f);
+            holdingEggs.emplace_back(eggPos, newEggOffset, eggSize, egg.getColor());
+            coins += 10; // 노란색 달걀 획득 시 코인 10 추가
+            continue; // 충돌한 달걀은 삭제
+        }
+
+        remainingThirdPlaceEggs.push_back(egg);
+    }
+
+    thirdPlaceEggs = remainingThirdPlaceEggs;
 }
 
-remainingEggs.push_back(egg);
-}
-
-chickenPlaceEggs = remainingEggs;
-}
 void setLighting(GLuint shaderProgram) {
     glUseProgram(shaderProgram);
 
@@ -284,11 +393,16 @@ void setLighting(GLuint shaderProgram) {
 void display() {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // RGBA: 흰색
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // "FINISH" 메시지 렌더링
+    if (coins >= 1000) {
+        std::string finishText = "FINISH";
+        renderText(400.0f, 300.0f, finishText, GLUT_BITMAP_TIMES_ROMAN_24); // 화면 정중앙에 표시
+    }
     // 조명 설정
     setLighting(shaderProgram);
-// 코인 표시
-std::string coinText = "Coins: " + std::to_string(coins);
-renderText(650.0f, 550.0f, coinText); // 화면 우측 상단에 텍스트 표시
+    // 코인 표시
+    std::string coinText = "Coins: " + std::to_string(coins);
+    renderText(650.0f, 550.0f, coinText); // 코인 텍스트 출력
 
 // 캐릭터 렌더링
 drawCounter(shaderProgram);
@@ -299,9 +413,28 @@ drawGround(shaderProgram);
 // ChickenPlace 렌더링
 chickenPlace->render(shaderProgram);
 // 코인 값이 200 이상일 때만 secondPlace 렌더링
-if (coins >= 200) {
+if(currentLevel==1)
+    price = 10;
+if (coins >= 30) {
+    currentLevel = 2;
+    price = 5;
     secondPlaceArea->render(shaderProgram);
+    // secondPlace의 달걀 렌더링
+    for (const auto& egg : secondPlaceEggs) {
+        egg.render(lightPos, viewPos);
+    }
 }
+if (coins >= 100)
+{
+    currentLevel = 3;
+    price = 10;
+    thirdPlaceArea->render(shaderProgram);
+    // secondPlace의 달걀 렌더링
+    for (const auto& egg : thirdPlaceEggs) {
+        egg.render(lightPos, viewPos); 
+    }
+}
+
 // 충돌 감지
 checkCollision();
 
@@ -396,6 +529,13 @@ void updateAnimation(int value) {
         timeSinceLastEgg = 0.0f;
         addEggInChickenPlace();
     }
+    // SecondPlace 달걀 생성 관리
+    if (currentLevel >= 2) {
+        addEggInSecondPlace();
+    }
+    if (currentLevel >= 3) {
+        addEggInThirdPlace();
+    }
 
     glutTimerFunc(16, updateAnimation, 0); // 60 FPS
     glutPostRedisplay();
@@ -466,6 +606,8 @@ character = new Character(glm::vec3(0.0f, 0.5f, -2.0f), glm::vec3(1.0f, 1.0f, 0.
 // ChickenPlace 초기화
 chickenPlace = new ChickenPlace(glm::vec3(-5.0f, 0.1f, -20.0f), glm::vec3(5.0f, 0.1f, -10.0f));
 secondPlaceArea = new secondPlace(glm::vec3(8.0f, 0.1f, -20.0f), glm::vec3(18.0f, 0.1f, -10.0f));
+thirdPlaceArea = new thirdPlace(glm::vec3(-8.0f, 0.1f, -20.0f), glm::vec3(-18.0f, 0.1f, -10.0f));
+
 addPlatform(glm::vec3(1.5f, 0.01f, -1.7f)); // 발판 추가
     
 // OpenGL 상태 설정

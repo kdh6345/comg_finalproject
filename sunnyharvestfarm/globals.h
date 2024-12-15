@@ -8,6 +8,7 @@
 #include "character.h"
 #include "customer.h"
 
+extern GLuint groundTexture;
 // OpenGL 관련 전역 변수
 extern GLuint shaderProgram;
 extern GLuint axisVAO, axisVBO;
@@ -47,9 +48,10 @@ extern bool key_w, key_a, key_s, key_d, key_j;
 
 // 코인 관련 전역 변수
 extern int coins; // 현재 코인 수
-
+extern int currentLevel;
 //배경 관련 전역 변수
 extern float ground_size;
 extern bool dropping;
+extern int price;
 #endif // GLOBALS_H
 

@@ -14,6 +14,7 @@ glm::vec3 viewPos = glm::vec3(30.0f, 30.0f, 30.0f);
 glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+int currentLevel=1;
 float cameraOrbitRadius = 12.0f;
 float cameraOrbitAngle = 0.0f;
 float cameraSpeed = 1.0f;
@@ -42,7 +43,8 @@ bool key_w = false, key_a = false, key_s = false, key_d = false, key_j = false;
 
 // 코인 초기화
 int coins = 0;
-
+int price = 3;
 //배경 관련 전역 변수
 float ground_size = 20.0f;
 bool dropping = false;
+
