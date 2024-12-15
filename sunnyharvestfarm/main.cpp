@@ -62,12 +62,17 @@ void spawnRandomCustomers(int value) {
 }
 
 void startSpawningCustomers() {
-    if (remainingCustomersToSpawn <= 0) {
-        remainingCustomersToSpawn = rand() % 5 + 1; // 1~5명의 손님 설정
-        //std::cout << "[DEBUG] Starting to spawn " << remainingCustomersToSpawn << " customers." << std::endl;
+    const int maxCustomers = 6; // 최대 손님 수 제한
 
-        // 첫 번째 손님 즉시 생성
-        spawnRandomCustomers(0);
+    // 현재 손님 수가 최대 제한보다 작을 경우에만 생성
+    if (customers.size() < maxCustomers) {
+        remainingCustomersToSpawn = rand() % 5 + 1; // 1~5명의 손님 설정
+        std::cout << "[DEBUG] Starting to spawn " << remainingCustomersToSpawn << " customers." << std::endl;
+
+        spawnRandomCustomers(0); // 첫 번째 손님 즉시 생성
+    }
+    else {
+        std::cout << "[DEBUG] Maximum customer limit reached. Waiting to spawn more." << std::endl;
     }
 }
 
@@ -97,14 +102,16 @@ void stackEggOnCounter()
 
 void spawnCustomers() {
     int numCustomers = rand() % 5 + 1; // 1 ~ 5명 사이 랜덤 손님 생성
-    float spacing = 1.5f;             // 줄 간격
+    float spacing = 2.0f;             // 줄 간격
 
     glm::vec3 basePosition(0.0f, 0.5f, 18.0f); // 줄 맨 앞의 기준 위치
 
     for (int i = 0; i < numCustomers; ++i) {
         glm::vec3 customerPosition = basePosition + glm::vec3(0.0f, 0.0f, i * spacing);
         glm::vec3 customerSize = glm::vec3(1.0f, 1.0f, 1.0f);
-        glm::vec3 customerColor = glm::vec3(0.9f, 0.5f, 0.2f); // 주황색
+        glm::vec3 customerColor = glm::vec3(0.7f, 0.5f, 0.2f); // 주황색
+
+        
         customers.emplace_back(customerPosition, customerSize, customerColor);
     }
 }
@@ -117,24 +124,57 @@ for (const auto& customer : customers)
     }
 }
 void updateCustomers(float deltaTime) {
-    for (auto& customer : customers) {
+
+    const int maxCustomers = 6; // 최대 손님 수 제한
+    const float spacing = 2.0f; // 손님 간 최소 간격
+    glm::vec3 spawnPosition(0.0f, 0.5f, 18.0f); // 손님 스폰 위치
+    std::vector<size_t> customersToRemove;
+
+    for (size_t i = 0; i < customers.size(); ++i) {
+        Customer& customer = customers[i];
+
+        // 현재 손님의 목표 위치를 계산
+        glm::vec3 targetPosition = customer.getTargetPosition();
+
+        // 앞 손님과의 거리 확인
+        if (i > 0) { // 첫 번째 손님은 앞에 손님이 없음
+            const Customer& previousCustomer = customers[i - 1];
+            float distanceToPrevious = glm::distance(customer.getPosition(), previousCustomer.getPosition());
+
+            // 앞 손님과의 간격이 좁으면 멈춤
+            if (distanceToPrevious < spacing) {
+                customer.stop();
+                continue;
+            }
+        }
+
+        // 손님이 목표 위치에 도달했는지 확인
         if (customer.isAtTarget()) {
             if (!customer.isCarryingEggsStatus()) {
-                // 손님이 카운터에 도착했으나 달걀이 없으면 대기
+                // 카운터에 도착했으나 달걀이 없으면 대기
                 if (!dropEggs.empty()) {
-                    customer.takeEggs(dropEggs); // 드랍된 달걀 챙기기
+                    customer.takeEggs(dropEggs); // 달걀 가져감
                 }
-                else {
-                    // 대기 상태 유지
-                    std::cout << "[DEBUG] Customer is waiting for eggs..." << std::endl;
+             
+            }
+            else {
+                glm::vec3 spawnPosition(0.0f, 0.5f, 18.0f); // 스폰 위치
+                if (glm::distance(customer.getPosition(), spawnPosition) < 0.5f) {
+                    customersToRemove.push_back(i); // 삭제 예정
                 }
             }
         }
         else {
-            // 손님 상태 업데이트
+            // 손님 이동 및 애니메이션 업데이트
             customer.updatePosition(deltaTime);
             customer.updateAnimation(deltaTime);
         }
+    }
+
+    // 삭제할 손님 제거 (역순으로 삭제하여 인덱스 안정성 유지)
+    for (auto it = customersToRemove.rbegin(); it != customersToRemove.rend(); ++it) {
+        std::cout << "[DEBUG] Removing customer at index: " << *it << std::endl;
+        customers.erase(customers.begin() + *it);
     }
 }
 
@@ -203,6 +243,7 @@ renderDropEggs(lightPos, viewPos);
 
 // 손님 렌더링
 renderCustomers(lightPos, viewPos);
+// 코인 출력
 
 glutSwapBuffers();
 }
@@ -341,10 +382,6 @@ character = new Character(glm::vec3(0.0f, 0.5f, -2.0f), glm::vec3(1.0f, 1.0f, 0.
 chickenPlace = new ChickenPlace(glm::vec3(-5.0f, 0.0f, -20.0f), glm::vec3(5.0f, 0.0f, -10.0f));
 addPlatform(glm::vec3(1.5f, 0.01f, -1.7f)); // 발판 추가
     
-   
-
-
-
 // OpenGL 상태 설정
 glEnable(GL_DEPTH_TEST);
 }

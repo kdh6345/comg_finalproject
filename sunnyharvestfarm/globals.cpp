@@ -39,6 +39,9 @@ bool onObstacle = false;
 float moveStep = 0.05f;
 bool key_w = false, key_a = false, key_s = false, key_d = false, key_j = false;
 
+// 코인 초기화
+int coins = 0;
+
 //배경 관련 전역 변수
 float ground_size = 20.0f;
 bool dropping = false;

@@ -11,6 +11,7 @@ Customer::Customer(glm::vec3 position, glm::vec3 size, glm::vec3 color)
 
     targetPosition = glm::vec3(0.0f, 0.5f, 5.0f);
     spawnPosition = position; // 스폰 위치 저장
+    velocity = glm::vec3(0.0f); // 초기 이동 속도
 
     // 신체 파트 초기화
     bodyOffset = glm::vec3(position.x, position.y, 0.0f);
@@ -38,8 +39,7 @@ void Customer::updatePosition(float deltaTime) {
         rotationY += rotationSpeed;
 
         if (rotationStage == 1 && rotationY >= 180.0f) {
-            std::cout << "[DEBUG] 180-degree rotation complete." << std::endl;
-            //std::cout << "[DEBUG] 180-degree rotation complete." << std::endl;
+            
             rotationY = 180.0f;
             isRotating = false; // 회전 종료
             isMoving = true;    // 이동 시작
@@ -59,8 +59,7 @@ void Customer::updatePosition(float deltaTime) {
             isMoving = false;
 
             if (targetPosition == spawnPosition) {
-                std::cout << "[DEBUG] Returned to spawn position." << std::endl;
-                // std::cout << "[DEBUG] Returned to spawn position." << std::endl;
+                
                 isCarryingEggs = false; // 달걀 전달 완료
                 rotationY = 0.0f; // 원래 방향으로 초기화
             }
@@ -68,31 +67,32 @@ void Customer::updatePosition(float deltaTime) {
     }
 
     if (isCarryingEggs && !isRotating && !isMoving) {
-        std::cout << "[DEBUG] Starting 180-degree rotation." << std::endl;
-        //std::cout << "[DEBUG] Starting 180-degree rotation." << std::endl;
+       
         isRotating = true;
         rotationStage = 1;
     }
 }
 
-
-
-
-
 void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
-    if (dropEggs.empty() || isCarryingEggs) return; // 이미 달걀을 들고 있으면 중단
+    int eggsTaken = 0;
+    if (dropEggs.empty() || isCarryingEggs) return; 
     if (isCarryingEggs) {
-        std::cout << "[DEBUG] Already carrying eggs, cannot take more." << std::endl;
-        return; // 이미 달걀을 들고 있는 상태라면 중단
+        return; 
     }
 
     if (dropEggs.empty()) {
-        std::cout << "[DEBUG] No eggs available to take." << std::endl;
-        isCarryingEggs = false; // 가져갈 달걀이 없으면 상태 갱신
-        return; // 달걀이 없으면 동작 중단
+       
+        isCarryingEggs = false; 
+        return;
     }
-
-
+    if (!dropEggs.empty()) {
+        carryingEggs = true;
+        dropEggs.pop_back();
+        eggsTaken++;
+    }
+    // 코인 증가 로직
+    coins += eggsTaken * 3; // 달걀 1개당 3원 추가
+    std::cout << "[DEBUG] Customer took " << eggsTaken << " eggs! Total Coins: " << coins << std::endl;
     int takeCount = std::min(rand() % 8 + 3, (int)dropEggs.size()); // 3~10개의 랜덤 개수
   
     for (int i = 0; i < takeCount; ++i) {
@@ -103,7 +103,7 @@ void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
     isCarryingEggs = true; // 달걀 들기 상태 활성화
     isMoving = true;       // 스폰 위치로 이동 시작
     targetPosition = spawnPosition; // 목표를 스폰 위치로 변경
-    std::cout << "[DEBUG] Customer took " << takeCount << " eggs and is returning." << std::endl;
+    //std::cout << "[DEBUG] Customer took " << takeCount << " eggs and is returning." << std::endl;
 }
 
 
@@ -163,9 +163,16 @@ void Customer::updateAnimation(float deltaTime) {
         }
     }
 }
-
-
-
+void Customer::setTargetPosition(glm::vec3 target) {
+    targetPosition = target;
+}
+void Customer::stop() {
+    // 이동을 멈추기 위해 속도를 0으로 설정
+    velocity = glm::vec3(0.0f);
+}
+glm::vec3 Customer::getTargetPosition() const {
+    return targetPosition;
+}
 
 bool Customer::isAtTarget() const {
     return glm::length(position - targetPosition) < 0.1f;
@@ -173,11 +180,7 @@ bool Customer::isAtTarget() const {
 
 void Customer::render(glm::vec3 lightPos, glm::vec3 viewPos) const {
     // 모델 변환 행렬 생성 (몸통 기준)
-    std::cout << "[DEBUG] Rendering customer at: ("
-        << position.x << ", "
-        << position.y << ", "
-        << position.z << ")" << std::endl;
-
+    
     glm::mat4 baseModel = glm::mat4(1.0f);
     baseModel = glm::translate(baseModel, position);
     baseModel = glm::rotate(baseModel, glm::radians(rotationY), glm::vec3(0.0f, 1.0f, 0.0f));

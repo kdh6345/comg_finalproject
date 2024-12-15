@@ -14,12 +14,16 @@ private:
     glm::vec3 targetPosition;  // 이동 목표 위치
     glm::vec3 spawnPosition;   // 손님의 스폰 위치
     float speed;         // 이동 속도
-
+    glm::vec3 velocity; // 이동 속도
+    bool carryingEggs; // 달걀을 들고 있는지 여부
+    
+    
     // 신체 파트
     glm::vec3 bodyOffset, bodySize;
     glm::vec3 headOffset, headSize;
     glm::vec3 armSize, leftArmOffset, rightArmOffset;
     glm::vec3 legSize, leftLegOffset, rightLegOffset;
+    
 
     // 애니메이션 상태
     float leftArmSwing, rightArmSwing;
@@ -48,7 +52,9 @@ public:
     void takeEggs(std::vector<DropEgg>& dropEggs); // 달걀 가져가기
     bool isAtSpawnPosition() const; // 스폰 위치로 돌아왔는지 확인
     glm::vec3 getPosition() const;
-
+    void setTargetPosition(glm::vec3 target); // 목표 위치 설정
+    void stop(); // 이동 중지
+    glm::vec3 getTargetPosition() const;
     // 추가: isCarryingEggs 상태 반환
     bool isCarryingEggsStatus() const {
         return isCarryingEggs;
