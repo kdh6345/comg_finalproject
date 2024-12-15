@@ -29,7 +29,6 @@ Customer::Customer(glm::vec3 position, glm::vec3 size, glm::vec3 color)
     rightLegOffset = glm::vec3(position.x + 0.35f, position.y - 0.75f, 0.0f);
 }
 
-
 void Customer::updatePosition(float deltaTime) {
     if (!isMoving && !isRotating) return;
 
@@ -90,8 +89,8 @@ void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
         dropEggs.pop_back();
         eggsTaken++;
     }
-    // 코인 증가 로직
-    coins += eggsTaken * 3; // 달걀 1개당 3원 추가
+    
+    
     std::cout << "[DEBUG] Customer took " << eggsTaken << " eggs! Total Coins: " << coins << std::endl;
     int takeCount = std::min(rand() % 8 + 3, (int)dropEggs.size()); // 3~10개의 랜덤 개수
   
@@ -99,7 +98,8 @@ void Customer::takeEggs(std::vector<DropEgg>& dropEggs) {
         heldEggs.push_back(dropEggs.back()); // 맨 위 달걀 추가
         dropEggs.pop_back();                // 가져간 달걀 제거
     }
-
+    coins += takeCount * 3; // 가져간 달걀 개수 * 3
+    printf("%d", coins);
     isCarryingEggs = true; // 달걀 들기 상태 활성화
     isMoving = true;       // 스폰 위치로 이동 시작
     targetPosition = spawnPosition; // 목표를 스폰 위치로 변경
@@ -163,7 +163,7 @@ void Customer::updateAnimation(float deltaTime) {
         }
     }
 }
-void Customer::setTargetPosition(glm::vec3 target) {
+void Customer::setTargetPosition(const glm::vec3& target) {
     targetPosition = target;
 }
 void Customer::stop() {

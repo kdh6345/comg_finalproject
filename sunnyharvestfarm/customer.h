@@ -51,12 +51,14 @@ public:
     bool isAtTarget() const;  // 목표 지점에 도달했는지 확인
     void takeEggs(std::vector<DropEgg>& dropEggs); // 달걀 가져가기
     bool isAtSpawnPosition() const; // 스폰 위치로 돌아왔는지 확인
-    glm::vec3 getPosition() const;
-    void setTargetPosition(glm::vec3 target); // 목표 위치 설정
-    void stop(); // 이동 중지
     glm::vec3 getTargetPosition() const;
+    void setTargetPosition(const glm::vec3& target);
+    void stop(); // 이동 중지
+   
     // 추가: isCarryingEggs 상태 반환
     bool isCarryingEggsStatus() const {
         return isCarryingEggs;
     }
+    glm::vec3 getPosition() const;
+
 };

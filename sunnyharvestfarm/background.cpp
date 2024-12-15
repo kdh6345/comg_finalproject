@@ -214,3 +214,38 @@ void ChickenPlace::render(unsigned int shaderProgram) {
     // `drawCube` 호출로 영역 렌더링
     drawCube(center, size, color, lightPos, viewPos, model);
 }
+
+secondPlace::secondPlace(glm::vec3 point1, glm::vec3 point2)
+    : point1(point1), point2(point2) {}
+
+void secondPlace::render(unsigned int shaderProgram) {
+    glUseProgram(shaderProgram);
+    // 색상 설정
+    glm::vec3 color(0.0f, 0.0f, 1.0f); // 연한 녹색
+    GLuint colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
+    glUniform4f(colorLoc, color.r, color.g, color.b, 1.0f);
+
+    // 영역의 중심 계산
+    glm::vec3 center = glm::vec3(
+        (point1.x + point2.x) / 2.0f,
+        (point1.y + point2.y) / 2.0f,
+        (point1.z + point2.z) / 2.0f
+    );
+
+    // 영역의 크기 계산
+    glm::vec3 size = glm::vec3(
+        std::abs(point2.x - point1.x),
+        std::abs(point2.y - point1.y),
+        std::abs(point2.z - point1.z)
+    );
+
+    // 색상 및 모델 변환 행렬 설정
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, center);
+    model = glm::scale(model, size);
+
+    // `drawCube` 호출로 영역 렌더링
+    drawCube(center, size, color, lightPos, viewPos, model);
+}
+

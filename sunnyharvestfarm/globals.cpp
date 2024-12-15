@@ -19,6 +19,7 @@ float cameraOrbitAngle = 0.0f;
 float cameraSpeed = 1.0f;
 float orbitSpeed = glm::radians(5.0f);
 //조명 관련 위치
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // 흰색 빛 (조명 색상)
 glm::vec3 lightPos = glm::vec3(0.0f, 10.0f, 5.0f);
 extern float lightOrbitRadius; // 공전 반경
 extern float lightAngle;       // 공전 각도

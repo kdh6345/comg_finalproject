@@ -19,11 +19,48 @@ float customerSpawnInterval = 10.0f; // 손님 생성 간격 (초)
 float timeSinceLastCustomer = 0.0f; // 마지막 손님 생성 후 경과 시간
 
 ChickenPlace* chickenPlace;       // ChickenPlace 객체
+secondPlace* secondPlaceArea;
 float eggGenerationInterval = 1.0f; // 달걀 생성 간격 (초)
 float timeSinceLastEgg = 0.0f;
 
 // 추가: 생성해야 할 남은 손님 수
 int remainingCustomersToSpawn = 0;
+
+void renderText(float x, float y, const std::string& text) {
+    // OpenGL 상태 저장
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_LIGHTING);       // 조명 비활성화
+    glDisable(GL_TEXTURE_2D);     // 텍스처 비활성화
+    glDisable(GL_DEPTH_TEST);     // 깊이 테스트 비활성화
+    glDisable(GL_BLEND);          // 블렌드 비활성화
+
+    // 투영 행렬 변경
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    gluOrtho2D(0, 800, 0, 600); // 2D 렌더링 설정
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    // 텍스트 위치 설정
+    glColor3f(1.0f, 1.0f, 1.0f); // 텍스트 색상 (흰색)
+    glRasterPos2f(x, y);
+
+    // 텍스트 출력
+    for (char c : text) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+
+    // 상태 복구
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glPopAttrib();
+}
+
 
 glm::vec3 generateRandomEggPosition(const glm::vec3& minPoint, const glm::vec3& maxPoint) {
 float randomX = minPoint.x + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxPoint.x - minPoint.x)));
@@ -129,6 +166,7 @@ void updateCustomers(float deltaTime) {
     const float spacing = 2.0f; // 손님 간 최소 간격
     glm::vec3 spawnPosition(0.0f, 0.5f, 18.0f); // 손님 스폰 위치
     std::vector<size_t> customersToRemove;
+    glm::vec3 adjustedSpawnPosition = spawnPosition + glm::vec3(3.0f, 0.0f, 0.0f);
 
     for (size_t i = 0; i < customers.size(); ++i) {
         Customer& customer = customers[i];
@@ -154,12 +192,23 @@ void updateCustomers(float deltaTime) {
                 // 카운터에 도착했으나 달걀이 없으면 대기
                 if (!dropEggs.empty()) {
                     customer.takeEggs(dropEggs); // 달걀 가져감
+
+                    // 달걀을 챙긴 후 새로운 목표 위치 설정
+                    glm::vec3 newTargetPosition(3.0f, 0.5f, 5.0f);
+                    customer.setTargetPosition(newTargetPosition);
                 }
-             
             }
             else {
-                glm::vec3 spawnPosition(0.0f, 0.5f, 18.0f); // 스폰 위치
-                if (glm::distance(customer.getPosition(), spawnPosition) < 0.5f) {
+                glm::vec3 currentTarget = customer.getTargetPosition();
+
+                // 첫 번째 목표 위치 (3.0f, 0.5f, 5.0f)에 도달했는지 확인
+                if (glm::distance(currentTarget, glm::vec3(3.0f, 0.5f, 5.0f)) < 0.1f) {
+                    // 두 번째 목표 위치로 변경
+                    glm::vec3 newTargetPosition(3.0f, 0.5f, 18.0f);
+                    customer.setTargetPosition(newTargetPosition);
+                }
+                // 두 번째 목표 위치(3.0f, 0.5f, 18.0f)에 도달했는지 확인
+                else if (glm::distance(currentTarget, glm::vec3(3.0f, 0.5f, 18.0f)) < 0.1f) {
                     customersToRemove.push_back(i); // 삭제 예정
                 }
             }
@@ -169,6 +218,7 @@ void updateCustomers(float deltaTime) {
             customer.updatePosition(deltaTime);
             customer.updateAnimation(deltaTime);
         }
+
     }
 
     // 삭제할 손님 제거 (역순으로 삭제하여 인덱스 안정성 유지)
@@ -212,20 +262,46 @@ remainingEggs.push_back(egg);
 
 chickenPlaceEggs = remainingEggs;
 }
+void setLighting(GLuint shaderProgram) {
+    glUseProgram(shaderProgram);
+
+    // 조명 위치 전달
+    GLint lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
+    glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
+
+    // 뷰(카메라) 위치 전달
+    GLint viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
+    glUniform3fv(viewPosLoc, 1, glm::value_ptr(viewPos));
+
+    // 조명 색상 전달
+    GLint lightColorLoc = glGetUniformLocation(shaderProgram, "lightColor");
+    glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+
+
+}
+
 
 void display() {
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // RGBA: 흰색
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // 조명 설정
+    setLighting(shaderProgram);
+// 코인 표시
+std::string coinText = "Coins: " + std::to_string(coins);
+renderText(650.0f, 550.0f, coinText); // 화면 우측 상단에 텍스트 표시
 
 // 캐릭터 렌더링
 drawCounter(shaderProgram);
 character->render(lightPos, viewPos);
-drawSun(shaderProgram);
+//drawSun(shaderProgram);
 renderPlatforms(1.0f, shaderProgram);
 drawGround(shaderProgram);
 // ChickenPlace 렌더링
 chickenPlace->render(shaderProgram);
-   
-
+// 코인 값이 200 이상일 때만 secondPlace 렌더링
+if (coins >= 200) {
+    secondPlaceArea->render(shaderProgram);
+}
 // 충돌 감지
 checkCollision();
 
@@ -243,9 +319,18 @@ renderDropEggs(lightPos, viewPos);
 
 // 손님 렌더링
 renderCustomers(lightPos, viewPos);
-// 코인 출력
+
+
 
 glutSwapBuffers();
+}
+void reshape(int width, int height) {
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0, (double)width / (double)height, 0.1, 100.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 
 void updateAnimation(int value) {
@@ -330,13 +415,13 @@ void keyboard(unsigned char key, int x, int y) {
         walking = true;
         break;
     case 'a': // 왼쪽 회전
-        character->setTargetRotation(90.0f);
-        character->move(0.0f, 0.0f, 0.3f, collisionManager);
+        character->setTargetRotation(270.0f);
+        character->move(0.0f, 0.0f, -0.3f, collisionManager);
         walking = true;
         break;
     case 'd': // 오른쪽 회전
-        character->setTargetRotation(270.0f);
-        character->move(0.0f, 0.0f, 0.3f, collisionManager);
+        character->setTargetRotation(90.0f);
+        character->move(0.0f, 0.0f, -0.3f, collisionManager);
         walking = true;
         break;
     case 'e': // 새로운 Egg 추가
@@ -379,7 +464,8 @@ initCube();
 collisionManager.addCollisionObject(CollisionObject(glm::vec3(0.0f, 0.5f, 1.5f), glm::vec3(3.0f, 1.0f, 2.0f))); // Counter
 character = new Character(glm::vec3(0.0f, 0.5f, -2.0f), glm::vec3(1.0f, 1.0f, 0.5f), glm::vec3(0.5f, 0.8f, 0.2f));
 // ChickenPlace 초기화
-chickenPlace = new ChickenPlace(glm::vec3(-5.0f, 0.0f, -20.0f), glm::vec3(5.0f, 0.0f, -10.0f));
+chickenPlace = new ChickenPlace(glm::vec3(-5.0f, 0.1f, -20.0f), glm::vec3(5.0f, 0.1f, -10.0f));
+secondPlaceArea = new secondPlace(glm::vec3(8.0f, 0.1f, -20.0f), glm::vec3(18.0f, 0.1f, -10.0f));
 addPlatform(glm::vec3(1.5f, 0.01f, -1.7f)); // 발판 추가
     
 // OpenGL 상태 설정
@@ -395,6 +481,7 @@ int main(int argc, char** argv) {
 
     glewInit();
     init();
+    glutReshapeFunc(reshape);
 
     glutTimerFunc(16, updateAnimation, 0);
     glutDisplayFunc(display);

@@ -10,6 +10,11 @@ Character::Character(glm::vec3 position, glm::vec3 size, glm::vec3 color)
     headOffset = glm::vec3(0.0f, position.y + 1.25f, 0.0f); // ¸öÅë À§
     headSize = glm::vec3(1.5f, 1.5f, 1.5f);
 
+
+    eyesSize = glm::vec3(0.2f, 0.2f, 0.2f);
+    lefteyesOffset = glm::vec3(position.x - 0.25f, position.y + 1.25f, 0.7f); // ¸öÅë À§
+    righteyesOffset = glm::vec3(position.x + 0.25f, position.y + 1.25f, 0.7f); // ¸öÅë À§
+
     // ÆÈ
     armSize = glm::vec3(0.25f, 1.0f, 0.3f);
     leftArmOffset = glm::vec3(position.x - 0.75f, position.y , 0.0f); // ¸öÅë ¿ÞÂÊ
@@ -75,6 +80,14 @@ void Character::render(glm::vec3 lightPos, glm::vec3 viewPos) {
     glm::mat4 headModel = glm::translate(baseModel, headOffset);
     headModel = glm::scale(headModel, headSize);
     drawCube(position + headOffset, headSize, glm::vec3(0.8f, 0.8f, 0.8f), lightPos, viewPos, headModel);
+
+    glm::mat4 lefteyesModel = glm::translate(baseModel, lefteyesOffset);
+    lefteyesModel = glm::scale(lefteyesModel, eyesSize);
+    drawCube(position + lefteyesOffset, eyesSize, glm::vec3(0.0f, 0.0f, 0.0f), lightPos, viewPos, lefteyesModel);
+
+    glm::mat4 righteyesModel = glm::translate(baseModel, righteyesOffset);
+    righteyesModel = glm::scale(righteyesModel, eyesSize);
+    drawCube(position + righteyesOffset, eyesSize, glm::vec3(0.0f, 0.0f, 0.0f), lightPos, viewPos, righteyesModel);
 
     // ¿ÞÆÈ ·»´õ¸µ
     glm::mat4 leftArmModel = glm::translate(baseModel, leftArmOffset);

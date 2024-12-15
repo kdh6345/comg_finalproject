@@ -25,7 +25,9 @@ private:
     glm::vec3 legSize;
     glm::vec3 leftLegOffset;
     glm::vec3 rightLegOffset;
-
+    glm::vec3 eyesSize;
+    glm::vec3 lefteyesOffset;
+    glm::vec3 righteyesOffset;
 public:
     // »ý¼ºÀÚ
     Character(glm::vec3 position, glm::vec3 size, glm::vec3 color);

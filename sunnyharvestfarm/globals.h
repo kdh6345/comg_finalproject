@@ -16,6 +16,7 @@ extern glm::mat4 view, projection;
 
 // 카메라 관련 전역 변수
 extern glm::vec3 lightPos;
+extern glm::vec3 lightColor;
 extern glm::vec3 viewPos;
 extern glm::vec3 cameraPos;
 extern glm::vec3 cameraTarget;

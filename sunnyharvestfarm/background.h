@@ -9,13 +9,23 @@ void drawCounter(GLuint shaderProgram); // Counter 추가
 class ChickenPlace {
 public:
     ChickenPlace(glm::vec3 point1, glm::vec3 point2);
-
     void render(unsigned int shaderProgram);
 
 private:
-    glm::vec3 point1; // 첫 번째 점
-    glm::vec3 point2; // 두 번째 점
+    glm::vec3 point1;
+    glm::vec3 point2;
 };
+
+class secondPlace {
+public:
+    secondPlace(glm::vec3 point1, glm::vec3 point2);
+    void render(unsigned int shaderProgram);
+
+private:
+    glm::vec3 point1;
+    glm::vec3 point2;
+};
+
 
 // 발판 관련 함수
 void addPlatform(glm::vec3 position);
